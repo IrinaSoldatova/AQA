@@ -18,6 +18,9 @@ public class Main {
 
 
         Park park = new Park("Остров мечты");
+        park.addAttraction("Колесо обозрения", "10:00 - 22:00", 750);
+        park.addAttraction("Американские горки", "10:00 - 20:00", 1000);
+        park.addAttraction("Автодром", "10:00 - 20:00", 500);
         System.out.println("Атракционы в парке " + park + ": ");
         park.printInfoAttractions();
 

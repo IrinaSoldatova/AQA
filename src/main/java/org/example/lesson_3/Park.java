@@ -1,10 +1,15 @@
 package org.example.lesson_3;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Park {
     private String parkName;
+    private List<Attraction> attractions;
 
     public Park(String parkName) {
         this.parkName = parkName;
+        this.attractions = new ArrayList<>();
     }
 
     class Attraction {
@@ -25,21 +30,18 @@ public class Park {
                     "Стоимость: " + cost + "\n";
         }
     }
+
+    public void addAttraction(String attractionName, String workingTime, double cost) {
+        attractions.add(new Attraction(attractionName, workingTime, cost));
+    }
      public void printInfoAttractions() {
-        Attraction ferrisWheel = new Attraction("Колесо обозрения", "10:00 - 22:00", 750);
-        Attraction rollerCoaster  = new Attraction("Американские горки", "10:00 - 20:00", 1000);
-        Attraction bumperCars = new Attraction("Автодром", "10:00 - 20:00", 500);
-
-         System.out.println(ferrisWheel);
-         System.out.println(rollerCoaster);
-         System.out.println(bumperCars);
+         for (Attraction attraction : attractions) {
+             System.out.println(attraction);
+         }
      }
-
-
 
     @Override
     public String toString() {
         return '"' + parkName + '"';
     }
-
 }

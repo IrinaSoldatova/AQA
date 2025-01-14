@@ -2,7 +2,6 @@ package org.example.lesson_11.task01;
 
 public class Cat extends Animal {
     private static final int MAX_RUN_DISTANCE = 200;
-    private static final int MAX_SWIM_DISTANCE = 0;
     private boolean isFull = false;
     private static int totalCats = 0;
 

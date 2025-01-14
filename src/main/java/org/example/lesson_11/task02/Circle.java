@@ -1,4 +1,4 @@
-package org.example.lesson_4.task02;
+package org.example.lesson_11.task02;
 
 public class Circle implements GeometricFigure {
     private double radius;

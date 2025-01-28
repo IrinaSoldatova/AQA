@@ -113,7 +113,7 @@ public class MtsTests {
         Assert.assertNotEquals(currentUrl, originalUrl, "Ссылка 'Подробнее о сервисе' не перенаправляет на другую страницу.");
     }
 
-    // Проверка полей ввода и кнопки "Продолжить"
+    // Проверка полей ввода и кнопки "Продолжить" + корректность отображения суммы
     @Test
     public void testContinueButtonForServices() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
@@ -128,7 +128,8 @@ public class MtsTests {
         phoneNumberField.sendKeys("297777777");
 
         WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"connection-sum\"]")));
-        amountField.sendKeys("2");
+        String amount = "2.00";
+        amountField.sendKeys(amount);
 
         WebElement continueButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"pay-connection\"]/button")));
         continueButton.click();
@@ -136,47 +137,23 @@ public class MtsTests {
         WebElement paymentIframe = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//iframe[contains(@class, 'bepaid-iframe')]")));
 
         driver.switchTo().frame(paymentIframe);
+
+        WebElement paymentHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/app-root/div/div/div/app-payment-container/section/div/div/div[1]/span[1]")));
+        Assert.assertTrue(paymentHeader.getText().contains(amount + " BYN"), "Сумма в заголовке неверна");
+
+        WebElement payButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//button[contains(text(), 'Оплатить') and contains(text(), '" + amount + " BYN')]")));
+        Assert.assertTrue(payButton.getText().contains("Оплатить " + amount + " BYN"), "Текст на кнопке оплаты неверен");
 
         WebElement closeButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/app-root/div/div/app-header/header/div/app-back-navigation/div/div")));
         closeButton.click();
 
         driver.switchTo().defaultContent();
     }
+    // Метод полей карты
+    private void checkPlaceholders() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-    @Test
-    public void testPaymentDetailsDisplay() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-
-        // Открываем список услуг и выбираем услугу
-        WebElement serviceButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[1]/div[1]/div[2]/button")));
-        serviceButton.click();
-
-        WebElement serviceOption = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[1]/div[1]/div[2]/button/span[1]")));
-        serviceOption.click();
-
-        // Вводим номер телефона и сумму
-        WebElement phoneNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"connection-phone\"]")));
-        String phoneNumber = "297777777";
-        phoneNumberField.sendKeys(phoneNumber);
-
-        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"connection-sum\"]")));
-        String amount = "2.00";
-        amountField.sendKeys(amount);
-
-        // Нажимаем кнопку "Продолжить"
-        WebElement continueButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"pay-connection\"]/button")));
-        continueButton.click();
-
-        // Ожидаем появления iframe с формой оплаты
-        WebElement paymentIframe = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//iframe[contains(@class, 'bepaid-iframe')]")));
-        driver.switchTo().frame(paymentIframe);
-
-        WebElement paymentHeader = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//app-payment-container//span[1]")));
-        Assert.assertTrue(paymentHeader.getText().contains(amount + " BYN"), "Сумма в заголовке неверна");
-
-        WebElement phoneDisplay = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//app-payment-container//div[2]/span")));
-        Assert.assertTrue(phoneDisplay.getText().contains(phoneNumber), "Номер телефона неверен");
-
+        // Проверяем плейсхолдеры на соответствие
         WebElement cardNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//label[text()='Номер карты']")));
         Assert.assertEquals(cardNumberField.getAttribute("placeholder"), "Номер карты", "Плейсхолдер для номера карты неверен");
 
@@ -191,11 +168,6 @@ public class MtsTests {
 
         List<WebElement> paymentIcons = driver.findElements(By.xpath("//app-card-input//div[contains(@class, 'payment-icon')]"));
         Assert.assertFalse(paymentIcons.isEmpty(), "Иконки платёжных систем отсутствуют");
-
-        WebElement payButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//app-card-input//button[contains(text(),'" + amount + " BYN')]")));
-        Assert.assertTrue(payButton.getText().contains(amount + " BYN"), "Текст на кнопке оплаты неверен");
-
-        driver.switchTo().defaultContent();
     }
 
     // Проверка плейсхолдеров

@@ -144,29 +144,31 @@ public class MtsTests {
         WebElement payButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//button[contains(text(), 'Оплатить') and contains(text(), '" + amount + " BYN')]")));
         Assert.assertTrue(payButton.getText().contains("Оплатить " + amount + " BYN"), "Текст на кнопке оплаты неверен");
 
+        checkPlaceholders();
         WebElement closeButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/app-root/div/div/app-header/header/div/app-back-navigation/div/div")));
         closeButton.click();
-
         driver.switchTo().defaultContent();
     }
     // Метод полей карты
     private void checkPlaceholders() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        WebElement blockCard = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/app-root/div/div/div/app-payment-container/section/div/app-card-page/div/div[1]/app-card-input/form/div[1]")));
+        Assert.assertTrue(blockCard.isDisplayed(), "Виртуальная карта не отображается");
 
         // Проверяем плейсхолдеры на соответствие
-        WebElement cardNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//label[text()='Номер карты']")));
-        Assert.assertEquals(cardNumberField.getAttribute("placeholder"), "Номер карты", "Плейсхолдер для номера карты неверен");
+        WebElement cardNumberLabel = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//label[text()='Номер карты']")));
+        Assert.assertEquals(cardNumberLabel.getText(), "Номер карты", "Текст метки для номера карты неверен");
 
-        WebElement expiryDateField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//label[contains(text(), 'Срок действия')]")));
-        Assert.assertEquals(expiryDateField.getAttribute("placeholder"), "Срок действия", "Плейсхолдер для срока действия неверен");
+        WebElement expiryDateField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/app-root/div/div/div/app-payment-container/section/div/app-card-page/div/div[1]/app-card-input/form/div[1]/div[2]/div[1]/app-input/div/div/div[1]/label")));
+        Assert.assertEquals(expiryDateField.getText(), "Срок действия", "Плейсхолдер для срока действия неверен");
 
-        WebElement cvcField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//label[contains(text(), 'CVC')]")));
-        Assert.assertEquals(cvcField.getAttribute("placeholder"), "CVC", "Плейсхолдер для CVC неверен");
+        WebElement cvcField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/app-root/div/div/div/app-payment-container/section/div/app-card-page/div/div[1]/app-card-input/form/div[1]/div[2]/div[3]/app-input/div/div/div[1]/label")));
+        Assert.assertEquals(cvcField.getText(), "CVC", "Плейсхолдер для CVC неверен");
 
-        WebElement cardHolderField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//label[contains(text(), 'Имя держателя (как на карте)')]")));
-        Assert.assertEquals(cardHolderField.getAttribute("placeholder"), "Имя держателя (как на карте)", "Плейсхолдер для имени держателя неверен");
+        WebElement cardHolderField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/app-root/div/div/div/app-payment-container/section/div/app-card-page/div/div[1]/app-card-input/form/div[1]/div[3]/app-input/div/div/div[1]/label")));
+        Assert.assertEquals(cardHolderField.getText(), "Имя держателя (как на карте)", "Плейсхолдер для имени держателя неверен");
 
-        List<WebElement> paymentIcons = driver.findElements(By.xpath("//app-card-input//div[contains(@class, 'payment-icon')]"));
+        List<WebElement> paymentIcons = driver.findElements(By.xpath("/html/body/app-root/div/div/div/app-payment-container/section/div/app-card-page/div/div[1]/app-card-input/form/div[1]/div[1]/app-input/div/div/div[2]"));
         Assert.assertFalse(paymentIcons.isEmpty(), "Иконки платёжных систем отсутствуют");
     }
 

@@ -14,8 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 
 public class MtsTests {
-
     private WebDriver driver;
+    private WebDriverWait wait;
     private static final String MTS_URL = "https://www.mts.by/";
 
     //Проверка Pop-up c cookie
@@ -27,7 +27,8 @@ public class MtsTests {
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         driver.get(MTS_URL);
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
         try {
             WebElement acceptCookiesButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id='cookie-agree']")));
             acceptCookiesButton.click();
@@ -52,11 +53,8 @@ public class MtsTests {
     // Проверка наличия и названия блока "Онлайн пополнение без комиссии"
     @Test
     public void testBlockTitle() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement block = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"pay-section\"]/div/div/div[2]/section/div")));
-        Assert.assertTrue(block.isDisplayed(), "Блок \"Онлайн пополнение без комиссии\" не отображается");
-
-        WebElement blockTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"pay-section\"]/div/div/div[2]/section/div/h2")));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement blockTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[text()='Онлайн пополнение ' and contains(., 'без комиссии')]")));
         Assert.assertEquals(blockTitle.getText().replace("\n", " "), "Онлайн пополнение без комиссии", "Название блока не соответствует");
     }
 
@@ -65,7 +63,7 @@ public class MtsTests {
     public void testPaymentSystemLogos() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        WebElement logosContainer = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[2]/ul")));
+        WebElement logosContainer = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@class, 'pay__partners')]//ul")));
         Assert.assertTrue(logosContainer.isDisplayed(), "Логотипы платежных систем отсутсвуют.");
 
         String[] expectedLogos = {
@@ -76,18 +74,10 @@ public class MtsTests {
                 "Белкарт"
         };
 
-        String[] expectedXPaths = {
-                "//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[2]/ul/li[1]/img",
-                "//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[2]/ul/li[2]/img",
-                "//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[2]/ul/li[3]/img",
-                "//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[2]/ul/li[4]/img",
-                "//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[2]/ul/li[5]/img"
-        };
-
-        for (int i = 0; i < expectedLogos.length; i++) {
-            WebElement logo = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(expectedXPaths[i])));
-            Assert.assertTrue(logo.isDisplayed(), "Логотип " + expectedLogos[i] + " не отображается");
-            Assert.assertTrue(logo.getAttribute("alt").contains(expectedLogos[i]),"Неверный alt у лого " + expectedLogos[i]);
+        for (String expectedLogo : expectedLogos) {
+            WebElement logo = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//img[@alt='" + expectedLogo + "']")));
+            Assert.assertTrue(logo.isDisplayed(), "Логотип " + expectedLogo + " отсутствует.");
+            Assert.assertEquals(logo.getAttribute("alt"), expectedLogo, "Неверный alt у лого " + expectedLogo);
         }
     }
 
@@ -96,7 +86,7 @@ public class MtsTests {
     public void testServiceDetailsLink() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        WebElement detailsLink = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"pay-section\"]/div/div/div[2]/section/div/a")));
+        WebElement detailsLink = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(), 'Подробнее о сервисе')]")));
         Assert.assertTrue(detailsLink.isDisplayed(), "Ссылка 'Подробнее о сервисе' не найдена.");
 
         String originalUrl = driver.getCurrentUrl();
@@ -111,6 +101,9 @@ public class MtsTests {
 
         String currentUrl = driver.getCurrentUrl();
         Assert.assertNotEquals(currentUrl, originalUrl, "Ссылка 'Подробнее о сервисе' не перенаправляет на другую страницу.");
+
+        WebElement expectedContent = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(text(), 'Оплата банковской картой')]")));
+        Assert.assertTrue(expectedContent.isDisplayed(), "Ожидаемый контент не найден на новой странице.");
     }
 
     // Проверка полей ввода и кнопки "Продолжить" + корректность отображения суммы
@@ -118,20 +111,20 @@ public class MtsTests {
     public void testContinueButtonForServices() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        WebElement serviceButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[1]/div[1]/div[2]/button")));
+        WebElement serviceButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(@class, 'select__header')]")));
         serviceButton.click();
 
-        WebElement serviceOption = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"pay-section\"]/div/div/div[2]/section/div/div[1]/div[1]/div[2]/button/span[1]")));
+        WebElement serviceOption = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//p[contains(text(), 'Услуги связи')]")));
         serviceOption.click();
 
-        WebElement phoneNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"connection-phone\"]")));
+        WebElement phoneNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='connection-phone']")));
         phoneNumberField.sendKeys("297777777");
 
-        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"connection-sum\"]")));
+        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='connection-sum']")));
         String amount = "2.00";
         amountField.sendKeys(amount);
 
-        WebElement continueButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"pay-connection\"]/button")));
+        WebElement continueButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[text()='Продолжить']")));
         continueButton.click();
 
         WebElement paymentIframe = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//iframe[contains(@class, 'bepaid-iframe')]")));
@@ -145,7 +138,7 @@ public class MtsTests {
         Assert.assertTrue(payButton.getText().contains("Оплатить " + amount + " BYN"), "Текст на кнопке оплаты неверен");
 
         checkPlaceholders();
-        WebElement closeButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/app-root/div/div/app-header/header/div/app-back-navigation/div/div")));
+        WebElement closeButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='header__close-button']")));
         closeButton.click();
         driver.switchTo().defaultContent();
     }
@@ -177,7 +170,7 @@ public class MtsTests {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         WebElement serviceButton = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//*[@id='pay-section']/div/div/div[2]/section/div/div[1]/div[1]/div[2]/button")));
+                By.xpath("//button[contains(@class, 'select__header')]")));
         serviceButton.click();
 
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//ul[contains(@class, 'select__list')]")));
@@ -209,13 +202,13 @@ public class MtsTests {
         checkInputFieldsLabelsForService("Домашний интернет");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         // Проверяем плейсхолдеры для полей ввода
-        WebElement phoneNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"internet-phone\"]")));
+        WebElement phoneNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='internet-phone']")));
         Assert.assertEquals(phoneNumberField.getAttribute("placeholder"), "Номер абонента", "Название плейсхолдера для номера абонента неверен");
 
-        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"internet-sum\"]")));
+        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='internet-sum']")));
         Assert.assertEquals(amountField.getAttribute("placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
 
-        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"internet-email\"]")));
+        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='internet-email']")));
         Assert.assertEquals(emailField.getAttribute("placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
     }
 
@@ -224,13 +217,13 @@ public class MtsTests {
         checkInputFieldsLabelsForService("Рассрочка");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         // Проверяем плейсхолдеры для полей ввода
-        WebElement phoneNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"score-instalment\"]")));
+        WebElement phoneNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='score-instalment']")));
         Assert.assertEquals(phoneNumberField.getAttribute("placeholder"), "Номер счета на 44", "Название плейсхолдера для номера счета неверен");
 
-        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"instalment-sum\"]")));
+        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='instalment-sum']")));
         Assert.assertEquals(amountField.getAttribute("placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
 
-        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"instalment-email\"]")));
+        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='instalment-email']")));
         Assert.assertEquals(emailField.getAttribute("placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
     }
     @Test
@@ -238,13 +231,13 @@ public class MtsTests {
         checkInputFieldsLabelsForService("Задолженность");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         // Проверяем плейсхолдеры для полей ввода
-        WebElement phoneNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"score-arrears\"]")));
+        WebElement phoneNumberField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='score-arrears']")));
         Assert.assertEquals(phoneNumberField.getAttribute("placeholder"), "Номер счета на 2073", "Название плейсхолдера для номера счета неверен");
 
-        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"arrears-sum\"]")));
+        WebElement amountField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='arrears-sum']")));
         Assert.assertEquals(amountField.getAttribute("placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
 
-        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"arrears-email\"]")));
+        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='arrears-email']")));
         Assert.assertEquals(emailField.getAttribute("placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
     }
 }

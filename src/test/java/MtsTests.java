@@ -16,7 +16,7 @@ public class MtsTests {
     private WebDriver driver;
     private WebDriverWait wait;
     private PaymentPage paymentPage;
-    private ServicePage servicePage;
+    private Services services;
     private static final String MTS_URL = "https://www.mts.by/";
     private static final String SERVICE_URL = "https://www.mts.by/help/poryadok-oplaty-i-bezopasnost-internet-platezhey/";
     private static final int DEFAULT_TIMEOUT_SECONDS = 20;
@@ -39,7 +39,7 @@ public class MtsTests {
         driver.get(MTS_URL);
         wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS));
         paymentPage = new PaymentPage(driver);
-        servicePage = new ServicePage(driver);
+        services = new Services(driver);
         acceptCookies();
         waitForPageLoad();
     }
@@ -159,24 +159,24 @@ public class MtsTests {
     @Test
     public void testPhoneServiceInputFieldsLabels() {
         checkInputFieldsLabelsForService("Услуги связи");
-        servicePage.checkPhoneServiceInputFieldsLabels();
+        services.checkPhoneServiceInputFieldsLabels();
     }
 
     @Test
     public void testHomeInternetInputFieldsLabels() {
         checkInputFieldsLabelsForService("Домашний интернет");
-        servicePage.checkHomeInternetInputFieldsLabels();
+        services.checkHomeInternetInputFieldsLabels();
     }
 
     @Test
     public void testInstallmentInputFieldsLabels() {
         checkInputFieldsLabelsForService("Рассрочка");
-        servicePage.checkInstallmentInputFieldsLabels();
+        services.checkInstallmentInputFieldsLabels();
     }
 
     @Test
     public void testDebtInputFieldsLabels() {
         checkInputFieldsLabelsForService("Задолженность");
-        servicePage.checkDebtInputFieldsLabels();
+        services.checkDebtInputFieldsLabels();
     }
 }

@@ -7,7 +7,7 @@ import org.testng.Assert;
 
 import java.time.Duration;
 
-public class ServicePage {
+public class Services {
     private WebDriver driver;
     private WebDriverWait wait;
 
@@ -25,7 +25,7 @@ public class ServicePage {
     private static final By EMAIL_ACC_FIELD = By.xpath("//input[@id='arrears-email']");
     private static final By PHONE_NUMBER_FIELD = By.xpath("//input[@id='connection-phone']");
 
-    public ServicePage(WebDriver driver) {
+    public Services(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }

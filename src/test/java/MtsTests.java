@@ -18,8 +18,7 @@ public class MtsTests {
     private WebDriverWait wait;
     private static final String MTS_URL = "https://www.mts.by/";
     private static final String SERVICE_URL = "https://www.mts.by/help/poryadok-oplaty-i-bezopasnost-internet-platezhey/";
-    private static final int DEFAULT_TIMEOUT_SECONDS = 10;
-    private static final int EXTENDED_TIMEOUT_SECONDS = 20;
+    private static final int DEFAULT_TIMEOUT_SECONDS = 20;
 
     private static final By COOKIE_ACCEPT_BUTTON = By.xpath("//*[@id='cookie-agree']");
     private static final By BLOCK_TITLE = By.xpath("//h2[text()='Онлайн пополнение ' and contains(., 'без комиссии')]");
@@ -99,7 +98,6 @@ public class MtsTests {
     // Проверка наличия и названия блока "Онлайн пополнение без комиссии"
     @Test
     public void testBlockTitle() {
-        wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS));
         WebElement blockTitle = waitForElement(BLOCK_TITLE);
         Assert.assertEquals(blockTitle.getText().replace("\n", " "), "Онлайн пополнение без комиссии", "Название блока не соответствует");
     }
@@ -107,8 +105,6 @@ public class MtsTests {
     // Проверка логотипов платежных систем
     @Test
     public void testPaymentSystemLogos() {
-        wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS));
-
         WebElement logosContainer = waitForElement(LOGOS_CONTAINER);
         Assert.assertTrue(logosContainer.isDisplayed(), "Логотипы платежных систем отсутсвуют.");
 
@@ -130,8 +126,6 @@ public class MtsTests {
     // Проверка ссылки "Подробнее о сервисе"
     @Test
     public void testServiceDetailsLink() {
-        wait = new WebDriverWait(driver, Duration.ofSeconds(EXTENDED_TIMEOUT_SECONDS));
-
         WebElement detailsLink = waitForElementToBeClickable(DETAILS_LINK);
         Assert.assertTrue(detailsLink.isDisplayed(), "Ссылка 'Подробнее о сервисе' не найдена.");
 
@@ -156,8 +150,7 @@ public class MtsTests {
     @Test
     public void testContinueButtonForServices() {
         String amount = "2.00";
-
-        wait = new WebDriverWait(driver, Duration.ofSeconds(EXTENDED_TIMEOUT_SECONDS));
+        String phoneNumber = "297777777";
 
         WebElement serviceButton = waitForElementToBeClickable(SERVICE_BUTTON);
         serviceButton.click();
@@ -166,7 +159,7 @@ public class MtsTests {
         serviceOption.click();
 
         WebElement phoneNumberField = waitForElement(PHONE_NUMBER_FIELD);
-        phoneNumberField.sendKeys("297777777");
+        phoneNumberField.sendKeys(phoneNumber);
 
         WebElement amountField = waitForElement(AMOUNT_FIELD);
         amountField.sendKeys(amount);
@@ -174,39 +167,34 @@ public class MtsTests {
         WebElement continueButton = waitForElementToBeClickable(CONTINUE_BUTTON);
         continueButton.click();
 
-        WebElement paymentIframe = waitForElement(PAYMENT_IFRAME);
-
-        driver.switchTo().frame(paymentIframe);
-
-        WebElement paymentHeader = waitForElement(PAYMENT_HEADER);
-        Assert.assertTrue(paymentHeader.getText().contains(amount + " BYN"), "Сумма в заголовке неверна");
-
-        WebElement payButton = waitForElement(By.xpath("//button[contains(text(), 'Оплатить') and contains(text(), '" + amount + " BYN')]"));
-        Assert.assertTrue(payButton.getText().contains("Оплатить " + amount + " BYN"), "Текст на кнопке оплаты неверен");
+        driver.switchTo().frame(waitForElement(PAYMENT_IFRAME));
+        amountValid(amount);
 
         checkPlaceholders();
         WebElement closeButton = waitForElementToBeClickable(CLOSE_BUTTON);
         closeButton.click();
         driver.switchTo().defaultContent();
     }
+    //Проверка суммы
+    public void amountValid(String amount) {
+        Assert.assertTrue(waitForElement(PAYMENT_HEADER).getText().contains(amount + " BYN"), "Сумма в заголовке неверна");
+
+        WebElement payButton = waitForElement(By.xpath("//button[contains(text(), 'Оплатить') and contains(text(), '" + amount + " BYN')]"));
+        Assert.assertTrue(payButton.getText().contains("Оплатить " + amount + " BYN"), "Текст на кнопке оплаты неверен");
+    }
+
     // Метод полей карты
     private void checkPlaceholders() {
-        wait = new WebDriverWait(driver, Duration.ofSeconds(EXTENDED_TIMEOUT_SECONDS));
         WebElement blockCard = waitForElement(BLOCK_CARD);
         Assert.assertTrue(blockCard.isDisplayed(), "Виртуальная карта не отображается");
 
-        // Проверяем плейсхолдеры на соответствие
-        WebElement cardNumberLabel = waitForElement(CARD_NUMBER_LABEL);
-        Assert.assertEquals(cardNumberLabel.getText(), "Номер карты", "Текст метки для номера карты неверен");
+        Assert.assertEquals(waitForElement(CARD_NUMBER_LABEL).getText(), "Номер карты", "Текст метки для номера карты неверен");
 
-        WebElement expiryDateField = waitForElement(EXPIRY_DATE_FIELD);
-        Assert.assertEquals(expiryDateField.getText(), "Срок действия", "Плейсхолдер для срока действия неверен");
+        Assert.assertEquals(waitForElement(EXPIRY_DATE_FIELD).getText(), "Срок действия", "Плейсхолдер для срока действия неверен");
 
-        WebElement cvcField = waitForElement(CVC_FIELD);
-        Assert.assertEquals(cvcField.getText(), "CVC", "Плейсхолдер для CVC неверен");
+        Assert.assertEquals(waitForElement(CVC_FIELD).getText(), "CVC", "Плейсхолдер для CVC неверен");
 
-        WebElement cardHolderField = waitForElement(CARD_HOLDER_FIELD);
-        Assert.assertEquals(cardHolderField.getText(), "Имя держателя (как на карте)", "Плейсхолдер для имени держателя неверен");
+        Assert.assertEquals(waitForElement(CARD_HOLDER_FIELD).getText(), "Имя держателя (как на карте)", "Плейсхолдер для имени держателя неверен");
 
         List<WebElement> paymentIcons = driver.findElements(PAYMENT_ICONS);
         Assert.assertFalse(paymentIcons.isEmpty(), "Иконки платёжных систем отсутствуют");
@@ -214,78 +202,66 @@ public class MtsTests {
 
     // Проверка плейсхолдеров
     private void checkInputFieldsLabelsForService(String serviceName) {
-        wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS));
-
-        WebElement serviceButton = wait.until(ExpectedConditions.elementToBeClickable(
-                SERVICE_BUTTON));
+        final By serviceOptionXPath = By.xpath(
+                "//li[contains(@class, 'select__item')]//p[contains(text(), '" + serviceName + "')]");
+        WebElement serviceButton = waitForElementToBeClickable(SERVICE_BUTTON);
         serviceButton.click();
 
         waitForElement(SERVICE_SELECT_LIST);
 
-        WebElement serviceOption = waitForElementToBeClickable(
-                By.xpath("//li[contains(@class, 'select__item')]//p[contains(text(), '" + serviceName + "')]"));
+        WebElement serviceOption = waitForElementToBeClickable(serviceOptionXPath);
         serviceOption.click();
     }
 
     @Test
     public void testPhoneServiceInputFieldsLabels() {
         checkInputFieldsLabelsForService("Услуги связи");
+        Assert.assertEquals(waitForElement(PHONE_NUMBER_FIELD).getAttribute(
+                "placeholder"), "Номер телефона", "Название плейсхолдера для номера телефона неверен");
 
-        wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS));
+        Assert.assertEquals(waitForElement(AMOUNT_FIELD).getAttribute(
+                "placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
 
-        // Проверяем плейсхолдеры для полей ввода
-        WebElement phoneNumberField = waitForElement(PHONE_NUMBER_FIELD);
-        Assert.assertEquals(phoneNumberField.getAttribute("placeholder"), "Номер телефона", "Название плейсхолдера для номера телефона неверен");
-
-        WebElement amountField = waitForElement(AMOUNT_FIELD);
-        Assert.assertEquals(amountField.getAttribute("placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
-
-        WebElement emailField = waitForElement(EMAIL_FIELD);
-        Assert.assertEquals(emailField.getAttribute("placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
+        Assert.assertEquals(waitForElement(EMAIL_FIELD).getAttribute(
+                "placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
     }
 
     @Test
     public void testHomeInternetInputFieldsLabels() {
         checkInputFieldsLabelsForService("Домашний интернет");
-        wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS));
-        // Проверяем плейсхолдеры для полей ввода
-        WebElement phoneNumberAbonentField = waitForElement(PHONEUMBER_ABONENT_FIELD);
-        Assert.assertEquals(phoneNumberAbonentField.getAttribute("placeholder"), "Номер абонента", "Название плейсхолдера для номера абонента неверен");
+        Assert.assertEquals(waitForElement(PHONEUMBER_ABONENT_FIELD).getAttribute(
+                "placeholder"), "Номер абонента", "Название плейсхолдера для номера абонента неверен");
 
-        WebElement amountInternetField = waitForElement(AMOUNT_INTERNET_FIELD);
-        Assert.assertEquals(amountInternetField.getAttribute("placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
+        Assert.assertEquals(waitForElement(AMOUNT_INTERNET_FIELD).getAttribute(
+                "placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
 
-        WebElement emailInternetField = waitForElement(EMAIL_INTERNET_FIELD);
-        Assert.assertEquals(emailInternetField.getAttribute("placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
+        Assert.assertEquals(waitForElement(EMAIL_INTERNET_FIELD).getAttribute(
+                "placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
     }
 
     @Test
     public void testInstallmentInputFieldsLabels() {
         checkInputFieldsLabelsForService("Рассрочка");
-        wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS));
-        // Проверяем плейсхолдеры для полей ввода
-        WebElement accountNumberField = waitForElement(ACCOUNT_NUMBER_FIELD);
-        Assert.assertEquals(accountNumberField.getAttribute("placeholder"), "Номер счета на 44", "Название плейсхолдера для номера счета неверен");
+        Assert.assertEquals(waitForElement(ACCOUNT_NUMBER_FIELD).getAttribute(
+                "placeholder"), "Номер счета на 44", "Название плейсхолдера для номера счета неверен");
 
-        WebElement amountAccountField = waitForElement(AMOUNT_ACCOUNT_FIELD);
-        Assert.assertEquals(amountAccountField.getAttribute("placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
+        Assert.assertEquals(waitForElement(AMOUNT_ACCOUNT_FIELD).getAttribute(
+                "placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
 
-        WebElement emailAccountField = waitForElement(EMAIL_ACCOUNT_FIELD);
-        Assert.assertEquals(emailAccountField.getAttribute("placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
+        Assert.assertEquals(waitForElement(EMAIL_ACCOUNT_FIELD).getAttribute(
+                "placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
     }
 
     @Test
     public void testDebtInputFieldsLabels() {
         checkInputFieldsLabelsForService("Задолженность");
-        wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS));
-        // Проверяем плейсхолдеры для полей ввода
-        WebElement accountNumberField = waitForElement(NUMBER_ACC_FIELD);
-        Assert.assertEquals(accountNumberField.getAttribute("placeholder"), "Номер счета на 2073", "Название плейсхолдера для номера счета неверен");
+        Assert.assertEquals(waitForElement(NUMBER_ACC_FIELD).getAttribute(
+                "placeholder"), "Номер счета на 2073", "Название плейсхолдера для номера счета неверен");
 
-        WebElement amountAccountField = waitForElement(AMOUNT_ACC_FIELD);
-        Assert.assertEquals(amountAccountField.getAttribute("placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
+        Assert.assertEquals(waitForElement(AMOUNT_ACC_FIELD).getAttribute(
+                "placeholder"), "Сумма", "Название плейсхолдера для суммы неверен");
 
-        WebElement emailAccountField = waitForElement(EMAIL_ACC_FIELD);
-        Assert.assertEquals(emailAccountField.getAttribute("placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
+        Assert.assertEquals(waitForElement(EMAIL_ACC_FIELD).getAttribute(
+                "placeholder"), "E-mail для отправки чека", "Название плейсхолдера для email неверен");
     }
 }

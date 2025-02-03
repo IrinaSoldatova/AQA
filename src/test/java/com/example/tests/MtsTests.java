@@ -1,4 +1,8 @@
+package com.example.tests;
+
 import io.github.bonigarcia.wdm.WebDriverManager;
+import io.qameta.allure.Description;
+import io.qameta.allure.Step;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -29,7 +33,6 @@ public class MtsTests {
     private static final By SERVICE_BUTTON = By.xpath("//button[contains(@class, 'select__header')]");
     private static final By SERVICE_SELECT_LIST = By.xpath("//ul[contains(@class, 'select__list')]");
 
-    //Проверка Pop-up c cookie
     @BeforeClass
     public void setupDriver() {
         WebDriverManager.chromedriver().setup();
@@ -43,7 +46,7 @@ public class MtsTests {
         acceptCookies();
         waitForPageLoad();
     }
-
+    @Description("Принятие cookie файлов")
     private void acceptCookies() {
             try {
                 WebElement acceptCookiesButton = wait.until(ExpectedConditions.visibilityOfElementLocated(COOKIE_ACCEPT_BUTTON));
@@ -77,6 +80,7 @@ public class MtsTests {
 
     // Проверка наличия и названия блока "Онлайн пополнение без комиссии"
     @Test
+    @Description("Проверка, что заголовок блока соответсвует ожидаемому.")
     public void testBlockTitle() {
         WebElement blockTitle = waitForElement(BLOCK_TITLE);
         Assert.assertEquals(blockTitle.getText().replace("\n", " "), "Онлайн пополнение без комиссии", "Название блока не соответствует");
@@ -84,6 +88,7 @@ public class MtsTests {
 
     // Проверка логотипов платежных систем
     @Test
+    @Description("Проверка логотипов платежных систем.")
     public void testPaymentSystemLogos() {
         WebElement logosContainer = waitForElement(LOGOS_CONTAINER);
         Assert.assertTrue(logosContainer.isDisplayed(), "Логотипы платежных систем отсутсвуют.");
@@ -105,6 +110,7 @@ public class MtsTests {
 
     // Проверка ссылки "Подробнее о сервисе"
     @Test
+    @Description("Проверка ссылки и содержание контента при переходе 'Подробнее о сервисе'.")
     public void testServiceDetailsLink() {
         WebElement detailsLink = waitForElementToBeClickable(DETAILS_LINK);
         Assert.assertTrue(detailsLink.isDisplayed(), "Ссылка 'Подробнее о сервисе' не найдена.");
@@ -128,6 +134,10 @@ public class MtsTests {
 
     // Проверка полей ввода и кнопки "Продолжить", корректность отображения суммы и полей карты
     @Test
+    @Description("Проверка кнопки 'Продолжить', меток полей банковской карты и корректность подтягивания введенной суммы.")
+    @Step("1. Заполнение формы и нажатие кнопки 'Продолжить'" +
+            "2. Переход в платежное окно" +
+            "3. Закрытие платежного окна")
     public void testContinueButtonForServices() {
         String amount = "2.00";
         String phoneNumber = "297777777";
@@ -142,7 +152,8 @@ public class MtsTests {
 
         Assert.assertTrue(paymentPage.getPaymentHeaderText().contains(amount + " BYN"), "Сумма в заголовке неверна");
 
-        WebElement payButton = driver.findElement(By.xpath("//button[contains(text(), 'Оплатить') and contains(text(), '" + amount + " BYN')]"));
+        WebElement payButton = driver.findElement(By.xpath(
+                "//button[contains(text(), 'Оплатить') and contains(text(), '" + amount + " BYN')]"));
         Assert.assertTrue(payButton.getText().contains("Оплатить " + amount + " BYN"), "Текст на кнопке оплаты неверен");
 
         paymentPage.checkPlaceholders();
@@ -150,6 +161,7 @@ public class MtsTests {
     }
 
     // Проверка плейсхолдеров
+    @Step("Выбор услуги")
     private void checkInputFieldsLabelsForService(String serviceName) {
         waitForElementToBeClickable(SERVICE_BUTTON).click();
         waitForElement(SERVICE_SELECT_LIST);
@@ -157,24 +169,28 @@ public class MtsTests {
     }
 
     @Test
+    @Description("Проверка меток полей в разделе 'Услуги связи'")
     public void testPhoneServiceInputFieldsLabels() {
         checkInputFieldsLabelsForService("Услуги связи");
         services.checkPhoneServiceInputFieldsLabels();
     }
 
     @Test
+    @Description("Проверка меток полей в разделе 'Домашний интернет'")
     public void testHomeInternetInputFieldsLabels() {
         checkInputFieldsLabelsForService("Домашний интернет");
         services.checkHomeInternetInputFieldsLabels();
     }
 
     @Test
+    @Description("Проверка меток полей в разделе 'Рассрочка'")
     public void testInstallmentInputFieldsLabels() {
         checkInputFieldsLabelsForService("Рассрочка");
         services.checkInstallmentInputFieldsLabels();
     }
 
     @Test
+    @Description("Проверка меток полей в разделе 'Задолженность'")
     public void testDebtInputFieldsLabels() {
         checkInputFieldsLabelsForService("Задолженность");
         services.checkDebtInputFieldsLabels();
